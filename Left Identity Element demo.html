@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!--
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Left Identity Element demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+
+    .table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 50%;
+    }
+
+    th,
+    td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f4f4f4;
+    }
+
+    .highlight {
+      background-color: yellow;
+    }
+
+    .navigation-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .step-label {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    button {
+      text-decoration: none;
+      display: inline-block;
+      padding: 8px 16px;
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+    }
+
+    button:hover {
+      background-color: #ddd;
+      color: black;
+    }
+
+    .previous {
+      background-color: #f1f1f1;
+      color: black;
+    }
+
+    .next {
+      background-color: #04AA6D;
+      color: white;
+    }
+
+    .round {
+      border-radius: 50%;
+    }
+
+    .disabled {
+      background-color: #f1f1f1 !important;
+      color: #ccc !important;
+      pointer-events: none;
+    }
+
+    .enabled {
+      background-color: #04AA6D;
+      color: white;
+    }
+
+    /* Valid cell */
+    .valid-cell {
+      background-color: #DFF6DD;
+      /* Light green */
+      border: 2px solid #4CAF50;
+      /* Darker green border */
+      color: #2E7D32;
+      /* Dark green text for contrast */
+    }
+
+    /* Invalid cell */
+    .invalid-cell {
+      background-color: #FDDCDC;
+      /* Light red */
+      border: 2px solid #E53935;
+      /* Darker red border */
+      color: #C62828;
+      /* Dark red text for contrast */
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Left Identity Element demo</h1>
+  <label for="element-count">Number of elements:</label>
+  <select id="element-count">
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4" selected>4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+  </select>
+  <label for="positive-results">Positive results</label>
+  <select id="positive-results">
+    <option value="1">1</option>
+  </select>
+  <span id="positive-results-label">(1 - required)</span>
+  <table id="cayley-table" class="table">
+    <thead>
+      <tr>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <table id="element-check-table" class="table">
+    <thead>
+      <tr>
+        <th>Element Check</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <table id="condition-check-table" class="table">
+    <thead>
+      <tr>
+        <th>Condition<br>e * x = x</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <div class="navigation-controls">
+    <button class="previous round" id="backward"><b>&#8249;</b></button>
+    <div class="step-label" id="step-label">Step: 1</div>
+    <button class="next round" id="forward"><b>&#8250;</b></button>
+  </div>
+
+  <script>
+    const cayleyTableHtml = document.getElementById('cayley-table');
+    const elementCheckTableHtml = document.getElementById('element-check-table');
+    const conditionCheckTableHtml = document.getElementById('condition-check-table');
+    const stepLabel = document.getElementById('step-label');
+    const forwardButton = document.getElementById('forward');
+    const backwardButton = document.getElementById('backward');
+    const elementCountSelect = document.getElementById('element-count');
+    const positiveResultsSelect = document.getElementById('positive-results');
+    const positiveResultsLabel = document.getElementById('positive-results-label');
+
+    const colorMap = {
+      'a': '#e6194B', // Red
+      'b': '#3cb44b', // Green
+      'c': '#4363d8', // Blue
+      'd': '#f58231', // Orange
+      'e': '#911eb4', // Purple
+      'f': '#f032e6', // Magenta
+      'g': '#bcf60c', // Lime
+      'h': '#fabebe', // Pink
+      'i': '#ffe119', // Yellow
+      'j': '#46f0f0', // Cyan        
+    };
+
+    // const colorMap = {
+    //   'a': '#b4ddd4',
+    //   'b': '#19291e',
+    //   'c': '#34f50e',
+    //   'd': '#6f1253',
+    //   'e': '#2fd192',
+    //   'f': '#e30293',
+    //   'g': '#a1d832',
+    //   'h': '#1c25a9',
+    //   'i': '#658114',
+    //   'j': '#dc7bd4'
+    // };
+
+    let size = 4;
+    let leftIdentityResults = defaultLeftIdentityResultsArray();
+    let elements = generateElements();
+    let isIdentityArray = Array(size).fill(false);
+    let step = 1;
+    let totalCells = size * size;
+    let cayleyTableForwardSteps = [];
+    let cayleyTableBackwardSteps = [];
+    let elementCheckForwardSteps = [];
+    let elementCheckBackwardSteps = [];
+    let conditionCheckForwardSteps = [];
+    let conditionCheckBackwardSteps = [];
+    let cayleyTableData = [];
+    // let leftIdentityResults = Array.from({ length: size }, () => Array(size).fill(false));
+
+    function generateElements() {
+      getSetSize();
+      return [...Array(size)].map((_, i) => String.fromCharCode(97 + i));
+    }
+
+    function getSetSize() {
+      size = parseInt(elementCountSelect.value, 10);
+      leftIdentityRowResults = Array(size).fill(false);
+    }
+
+    function generateElementsData() {
+      getSetSize();
+      elements = generateElements();
+      size = elements.length;
+      totalCells = size * size;
+    }
+
+    function updatePositiveResultsSelector() {
+      getSetSize();
+      positiveResultsSelect.innerHTML = '';
+      if (size === 1) {
+        const option = document.createElement('option');
+        option.value = 1;
+        option.textContent = 1;
+        positiveResultsSelect.appendChild(option);
+        positiveResultsLabel.textContent = '(1 - required)';
+      } else {
+        for (let i = 0; i <= size; i++) {
+          const option = document.createElement('option');
+          option.value = i;
+          option.textContent = i;
+          positiveResultsSelect.appendChild(option);
+        }
+        positiveResultsSelect.value = '1';
+        positiveResultsLabel.textContent = `(0 - ${size})`;
+      }
+    }
+
+    function generateIdentityRowIndicatorArray() {
+      const positiveCount = parseInt(positiveResultsSelect.value, 10);
+      isIdentityArray = Array(size).fill(false);
+      for (let i = 0; i < positiveCount; i++) {
+        let randomIndex;
+        do {
+          randomIndex = Math.floor(Math.random() * size);
+        } while (isIdentityArray[randomIndex]);
+        isIdentityArray[randomIndex] = true;
+      }
+      if (size > 1) {
+        for (let i = isIdentityArray.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [isIdentityArray[i], isIdentityArray[j]] = [isIdentityArray[j], isIdentityArray[i]];
+        }
+      }
+    }
+
+    function arraysAreEqual(arr1, arr2) {
+      if (arr1.length !== arr2.length) return false;
+      return arr1.every((value, index) => value === arr2[index]);
+    }
+
+    function generateTableData() {
+      generateElementsData();
+      generateCayleyTableData();
+      generateLeftIdentityResults();
+      generateLeftIdentityRowResults();
+    }
+
+    function generateCayleyTableData() {
+      cayleyTableData = Array.from({ length: size }, () => Array(size).fill(null));
+      const leftIdentityValues = elements.slice(0, size);
+      elements.forEach((element, rowIndex) => {
+        const isIdentityRow = checkIsIdentityRow(rowIndex);
+        if (isIdentityRow) {
+          cayleyTableData[rowIndex] = [...leftIdentityValues];
+        } else {
+          let newRow;
+          do {
+            newRow = Array.from({ length: size }, () => elements[Math.floor(Math.random() * size)]);
+          } while (arraysAreEqual(newRow, leftIdentityValues));
+          cayleyTableData[rowIndex] = newRow;
+        }
+      });
+    }
+
+    function defaultLeftIdentityResultsArray() {
+      const leftIdentityResults = [];
+      for (let i = 0; i < size; i++) {
+        const row = [];
+        for (let j = 0; j < size; j++) {
+          row.push(false);
+        }
+        leftIdentityResults.push(row);
+      }
+      return leftIdentityResults;
+    }
+
+    function generateLeftIdentityResults() {
+      // leftIdentityResults = Array.from({ length: size }, () => Array(size).fill(false));
+      // defaultLeftIdentityResultsArray();
+      leftIdentityResults = defaultLeftIdentityResultsArray();
+      for (let rowIndex = 0; rowIndex < size; rowIndex++) {
+        for (let colIndex = 0; colIndex < size; colIndex++) {
+          leftIdentityResults[rowIndex][colIndex] = checkLeftIdentityCondition(rowIndex, colIndex);
+        }
+      }
+      // console.log('leftIdentityResults:', leftIdentityResults);
+    }
+
+    function generateLeftIdentityRowResults() {
+      leftIdentityRowResults = Array(size).fill(false);
+      for (let rowIndex = 0; rowIndex < size; rowIndex++) {
+        leftIdentityRowResults[rowIndex] = leftIdentityResults[rowIndex].every(result => result);
+      }
+      // console.log('leftIdentityRowResults:', leftIdentityRowResults);
+    }
+
+    function checkIsIdentityRow(rowIndex) {
+      return size === 1 || isIdentityArray[rowIndex];
+    }
+
+    function checkLeftIdentityCondition(rowIndex, colIndex) {
+      const value = cayleyTableData[rowIndex][colIndex];
+      const expectedValue = elements[colIndex];
+      return value === expectedValue;
+    }
+
+    function generateTable() {
+      clearTables();
+      generateTableData();
+      renderTableHeaders();
+      renderTableRows();
+      renderElementCheckTable();
+      renderConditionCheckTable();
+      precomputeSteps();
+    }
+
+    function clearTables() {
+      cayleyTableHtml.querySelector('thead tr').innerHTML = '<th></th>';
+      cayleyTableHtml.querySelector('tbody').innerHTML = '';
+      elementCheckTableHtml.querySelector('tbody').innerHTML = '';
+      conditionCheckTableHtml.querySelector('tbody').innerHTML = '';
+    }
+
+    function renderTableHeaders() {
+      const thead = cayleyTableHtml.querySelector('thead tr');
+      elements.forEach(element => {
+        const th = document.createElement('th');
+        th.textContent = element;
+        th.style.color = colorMap[element] || 'black';
+        thead.appendChild(th);
+      });
+    }
+
+    function renderTableRows() {
+      const tbody = cayleyTableHtml.querySelector('tbody');
+      elements.forEach((element, rowIndex) => {
+        const row = document.createElement('tr');
+        const th = document.createElement('th');
+        th.textContent = element;
+        th.style.color = colorMap[element] || 'black';
+        row.appendChild(th);
+
+        for (let colIndex = 0; colIndex < size; colIndex++) {
+          const td = document.createElement('td');
+          const cellElement = cayleyTableData[rowIndex][colIndex];
+          td.innerHTML = `<span style="color: ${colorMap[cellElement] || 'black'}">${cellElement}</span>`;
+          row.appendChild(td);
+        }
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderElementCheckTable() {
+      const checkTbody = elementCheckTableHtml.querySelector('tbody');
+      elements.forEach(element => {
+        const row = document.createElement('tr');
+        const elementCell = document.createElement('td');
+        elementCell.innerHTML = `Identity element e = <span style="color: ${colorMap[element] || 'black'}">${element}</span>`;
+        const resultCell = document.createElement('td');
+        row.appendChild(elementCell);
+        row.appendChild(resultCell);
+        checkTbody.appendChild(row);
+      });
+    }
+
+    function renderConditionCheckTable() {
+      const conditionCheckTbody = conditionCheckTableHtml.querySelector('tbody');
+      elements.forEach(element => {
+        const row = document.createElement('tr');
+        const conditionCell = document.createElement('td');
+        conditionCell.innerHTML = `e * <span style="color: ${colorMap[element] || 'black'}">${element}</span> = <span style="color: ${colorMap[element] || 'black'}">${element}</span>`;
+        const resultCell = document.createElement('td');
+        row.appendChild(conditionCell);
+        row.appendChild(resultCell);
+        conditionCheckTbody.appendChild(row);
+      });
+    }
+
+    function precomputeSteps() {
+      cayleyTableForwardSteps = [];
+      cayleyTableBackwardSteps = [];
+      elementCheckForwardSteps = [];
+      elementCheckBackwardSteps = [];
+      conditionCheckForwardSteps = [];
+      conditionCheckBackwardSteps = [];
+
+      for (let i = 1; i <= totalCells; i++) {
+        const index = i - 1;
+        const row = Math.floor(index / size) + 1;
+        const col = (index % size) + 1;
+
+        cayleyTableForwardSteps.push(() => {
+          cayleyTableHtml.rows[row].cells[col].classList.add(leftIdentityResults[row - 1][col - 1] ? 'valid-cell' : 'invalid-cell');
+          cayleyTableHtml.rows[row].cells[0].classList.add('highlight');
+          cayleyTableHtml.rows[0].cells[col].classList.add('highlight');
+        });
+        cayleyTableBackwardSteps.push(() => {
+          cayleyTableHtml.rows[row].cells[col].classList.remove('valid-cell', 'invalid-cell');
+          cayleyTableHtml.rows[row].cells[0].classList.remove('highlight');
+          cayleyTableHtml.rows[0].cells[col].classList.remove('highlight');
+        });
+
+        elementCheckForwardSteps.push(() => {
+          elementCheckTableHtml.rows[row].cells[0].classList.add('highlight');
+
+        });
+        elementCheckBackwardSteps.push(() => {
+          elementCheckTableHtml.rows[row].cells[0].classList.remove('highlight');
+        });
+
+        conditionCheckForwardSteps.push(() => {
+          conditionCheckTableHtml.rows[col].cells[0].classList.add('highlight');
+          const resultCell = conditionCheckTableHtml.rows[col].cells[1];
+          resultCell.textContent = leftIdentityResults[row - 1][col - 1] ? 'True' : 'False';
+          resultCell.classList.add(leftIdentityResults[row - 1][col - 1] ? 'valid-cell' : 'invalid-cell');
+        });
+        conditionCheckBackwardSteps.push(() => {
+          conditionCheckTableHtml.rows[col].cells[0].classList.remove('highlight');
+        });
+      }
+
+      step = 1;
+      updateStepLabel();
+      updateButtonStates();
+      cayleyTableForwardSteps[step - 1]();
+      elementCheckForwardSteps[step - 1]();
+      conditionCheckForwardSteps[step - 1]();
+    }
+
+    function updateStepLabel() {
+      stepLabel.textContent = `Step: ${step}`;
+    }
+
+    function updateButtonStates() {
+      if (step <= 1) {
+        backwardButton.classList.add('disabled');
+        backwardButton.classList.remove('enabled');
+      } else {
+        backwardButton.classList.remove('disabled');
+        backwardButton.classList.add('enabled');
+      }
+      if (step >= totalCells) {
+        forwardButton.classList.add('disabled');
+        forwardButton.classList.remove('enabled');
+      } else {
+        forwardButton.classList.remove('disabled');
+        forwardButton.classList.add('enabled');
+      }
+    }
+
+    forwardButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (step < totalCells) {
+        cayleyTableBackwardSteps[step - 1]();
+        elementCheckBackwardSteps[step - 1]();
+        conditionCheckBackwardSteps[step - 1]();
+
+        // Clear Condition Table entries on new row. The entries will be added one cell at a time.
+        if (step % size == 0) {
+          for (let row = 0; row < size; row++) {
+            const resultCell = conditionCheckTableHtml.rows[row + 1].cells[1];
+            resultCell.textContent = '';
+            resultCell.classList.remove('valid-cell', 'invalid-cell');
+          }
+        }
+
+        step++;
+
+        let index = step - 1;
+        let row = Math.floor(index / size) + 1;
+        let col = (index % size) + 1;
+        // console.log(`row: ${row}, col: ${col}`);
+
+        // When new row, for Element Check Table show next value.
+        if (col == size) {
+          // console.log('leftIdentityRowResults:', leftIdentityRowResults);
+          const resultCell = elementCheckTableHtml.rows[row].cells[1];
+          let element = elements[row - 1];
+          resultCell.innerHTML = leftIdentityRowResults[row - 1] ? `<span style="color: ${colorMap[element] || 'black'}">${element}</span> is an identity element` : `<span style="color: ${colorMap[element] || 'black'}">${element}</span>  is not an identity element`;
+          resultCell.classList.add(leftIdentityRowResults[row - 1] ? 'valid-cell' : 'invalid-cell');
+        }
+
+        cayleyTableForwardSteps[step - 1]();
+        elementCheckForwardSteps[step - 1]();
+        conditionCheckForwardSteps[step - 1]();
+        updateStepLabel();
+        updateButtonStates();
+      }
+    });
+
+    backwardButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (step > 1) {
+        cayleyTableBackwardSteps[step - 1]();
+        elementCheckBackwardSteps[step - 1]();
+        conditionCheckBackwardSteps[step - 1]();
+
+        let index = step - 1;
+        let row = Math.floor(index / size) + 1;
+        let col = (index % size) + 1;
+        console.log(`row: ${row}, col: ${col}`);
+
+        // Remove previous result from Condition Table
+        // console.log(`row: ${row}, col: ${col}`);
+        // Remember the table is for a list of values in a row so use col as index for rows array.
+        const resultCell = conditionCheckTableHtml.rows[col].cells[1];
+        resultCell.textContent = '';
+        resultCell.classList.remove('valid-cell', 'invalid-cell');
+
+        step--;
+
+        // Since step changed need to calculate row and col again.
+        index = step - 1;
+        row = Math.floor(index / size) + 1;
+        col = (index % size) + 1;
+        // console.log(`row: ${row}, col: ${col}`);
+
+        // Remove previous result from Element Check Table
+        if (col == (size - 1)) {
+          const resultCell = elementCheckTableHtml.rows[row].cells[1];
+          resultCell.textContent = '';
+          resultCell.classList.remove('valid-cell', 'invalid-cell');
+        }
+
+        // When row change, for Condition Table show all values.
+        if (col == size) {
+          // console.log('leftIdentityResults:', leftIdentityResults);
+          for (let col = 0; col < size; col++) {
+            const resultCell = conditionCheckTableHtml.rows[col + 1].cells[1];
+            resultCell.textContent = leftIdentityResults[row - 1][col] ? 'True' : 'False';
+            resultCell.classList.add(leftIdentityResults[row - 1][col] ? 'valid-cell' : 'invalid-cell');
+          }
+        }
+
+        cayleyTableForwardSteps[step - 1]();
+        elementCheckForwardSteps[step - 1]();
+        conditionCheckForwardSteps[step - 1]();
+        updateStepLabel();
+        updateButtonStates();
+      }
+    });
+
+    elementCountSelect.addEventListener('change', onElementCountChange);
+
+    function onElementCountChange() {
+      getSetSize();
+      generateElementsData();
+      updatePositiveResultsSelector();
+      generateIdentityRowIndicatorArray();
+      generateTable();
+    }
+
+    positiveResultsSelect.addEventListener('change', () => {
+      generateIdentityRowIndicatorArray();
+      generateTable();
+    });
+
+    onElementCountChange();
+  </script>
+
+  <footer>
+    <p>
+      Licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License 2.0</a>.
+    </p>
+  </footer>
+</body>
+
+</html>
