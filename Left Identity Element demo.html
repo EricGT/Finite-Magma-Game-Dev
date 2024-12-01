@@ -18,7 +18,7 @@ limitations under the License.
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Left Identity Element demo</title>
+  <title>Left Identity Element Property</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -30,6 +30,32 @@ limitations under the License.
       margin: 20px auto;
       border-collapse: collapse;
       width: 50%;
+    }
+
+    .element-condition-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      margin-top: 20px;
+      gap: 10px;
+    }
+
+    #element-check-table,
+    #condition-check-table {
+      margin: 0;
+      border-collapse: collapse;
+      width: auto;
+    }
+
+    #element-check-table th,
+    #condition-check-table th {
+      height: 50px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    #element-check-table .result-column {
+      width: 300px;
     }
 
     th,
@@ -98,30 +124,120 @@ limitations under the License.
       color: white;
     }
 
-    /* Valid cell */
     .valid-cell {
       background-color: #DFF6DD;
-      /* Light green */
       border: 2px solid #4CAF50;
-      /* Darker green border */
       color: #2E7D32;
-      /* Dark green text for contrast */
     }
 
-    /* Invalid cell */
     .invalid-cell {
       background-color: #FDDCDC;
-      /* Light red */
       border: 2px solid #E53935;
-      /* Darker red border */
       color: #C62828;
-      /* Dark red text for contrast */
+    }
+
+    .math-section {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      margin: 20px auto;
+      max-width: 800px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: #fdfdfd;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .math-header {
+      background-color: #007BFF;
+      color: white;
+      padding: 10px 15px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 18px;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .math-header:hover {
+      background-color: #0056b3;
+    }
+
+    .math-content {
+      padding: 20px;
+      line-height: 1.6;
+      display: block;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+
+    .math-content.collapsed {
+      max-height: 0;
+      padding: 0 20px;
+    }
+
+    .math-content h1 {
+      font-size: 1.8em;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .math-content p {
+      margin-bottom: 20px;
+    }
+
+    .math-content code {
+      font-family: 'Courier New', monospace;
+      background-color: #f4f4f4;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    .math-content em {
+      font-style: italic;
     }
   </style>
 </head>
 
 <body>
-  <h1>Left Identity Element demo</h1>
+  <h1>Left Identity Element</h1>
+  <h3>Demo
+    <a href="Left Identity Element demo help.html" target="_blank">
+      <!-- https://en.m.wikipedia.org/wiki/File:Icon-round-Question_mark.svg -->
+      <img src="question_mark_help.svg" alt="Help" title="Learn more about inverse elements"
+        style="width: 16px; height: 16px; margin-left: 5px; cursor: pointer;">
+    </a>
+  </h3>
+
+  <div class="math-section">
+    <div class="math-header" onclick="toggleSection()">
+      Left Identity Element (Click to Expand/Collapse)
+    </div>
+    <div class="math-content" id="mathContent">
+      <p>
+        A <strong>left identity element</strong> in algebra is a special element in a set that leaves other elements
+        unchanged when used in an operation from the left. More formally, if <em>e</em> is the left identity element for
+        a binary operation
+        <em>*</em> defined on a set <em>S</em>, then for every element <em>x</em> in <em>S</em>, the equation
+        <code>e * x = x</code> holds true.
+      </p>
+      <p>
+        The left identity property focuses on the direction of the operation, as it only guarantees that the identity
+        element behaves as expected when it appears on the left side of the operation. This is in contrast to a
+        two-sided identity, which satisfies
+        <code>e * x = x</code> and <code>x * e = x</code> for all <em>x</em> in <em>S</em>.
+      </p>
+      <p>
+        In some algebraic structures, like semigroups or magmas, the existence of a left identity does not necessarily
+        imply the existence of a right identity or that the left identity is unique. However, in structures with more
+        stringent properties, such as groups or monoids, the left identity often coincides with the right identity,
+        resulting in a unique two-sided identity element.
+      </p>
+      <p>
+        Understanding the left identity element is fundamental in exploring the structure of algebraic systems, as it
+        plays a role in determining how elements interact and whether certain properties like invertibility can be
+        established.
+      </p>
+    </div>
+  </div>
+
   <label for="element-count">Number of elements:</label>
   <select id="element-count">
     <option value="1">1</option>
@@ -145,26 +261,29 @@ limitations under the License.
     <tbody>
     </tbody>
   </table>
-  <table id="element-check-table" class="table">
-    <thead>
-      <tr>
-        <th>Element Check</th>
-        <th>Result</th>
-      </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
-  <table id="condition-check-table" class="table">
-    <thead>
-      <tr>
-        <th>Condition<br>e * x = x</th>
-        <th>Result</th>
-      </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
+  <div class="element-condition-wrapper">
+    <table id="element-check-table" class="table">
+      <thead>
+        <tr>
+          <th>Element Check</th>
+          <th class="result-column">Result</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <table id="condition-check-table" class="table">
+      <thead>
+        <tr>
+          <th>Condition<br>e * x = x</th>
+          <th class="result-column">Result</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+  <div style="height: 10px;"></div>
   <div class="navigation-controls">
     <button class="previous round" id="backward"><b>&#8249;</b></button>
     <div class="step-label" id="step-label">Step: 1</div>
@@ -195,19 +314,6 @@ limitations under the License.
       'j': '#46f0f0', // Cyan        
     };
 
-    // const colorMap = {
-    //   'a': '#b4ddd4',
-    //   'b': '#19291e',
-    //   'c': '#34f50e',
-    //   'd': '#6f1253',
-    //   'e': '#2fd192',
-    //   'f': '#e30293',
-    //   'g': '#a1d832',
-    //   'h': '#1c25a9',
-    //   'i': '#658114',
-    //   'j': '#dc7bd4'
-    // };
-
     let size = 4;
     let leftIdentityResults = defaultLeftIdentityResultsArray();
     let elements = generateElements();
@@ -221,7 +327,6 @@ limitations under the License.
     let conditionCheckForwardSteps = [];
     let conditionCheckBackwardSteps = [];
     let cayleyTableData = [];
-    // let leftIdentityResults = Array.from({ length: size }, () => Array(size).fill(false));
 
     function generateElements() {
       getSetSize();
@@ -321,15 +426,12 @@ limitations under the License.
     }
 
     function generateLeftIdentityResults() {
-      // leftIdentityResults = Array.from({ length: size }, () => Array(size).fill(false));
-      // defaultLeftIdentityResultsArray();
       leftIdentityResults = defaultLeftIdentityResultsArray();
       for (let rowIndex = 0; rowIndex < size; rowIndex++) {
         for (let colIndex = 0; colIndex < size; colIndex++) {
           leftIdentityResults[rowIndex][colIndex] = checkLeftIdentityCondition(rowIndex, colIndex);
         }
       }
-      // console.log('leftIdentityResults:', leftIdentityResults);
     }
 
     function generateLeftIdentityRowResults() {
@@ -337,7 +439,6 @@ limitations under the License.
       for (let rowIndex = 0; rowIndex < size; rowIndex++) {
         leftIdentityRowResults[rowIndex] = leftIdentityResults[rowIndex].every(result => result);
       }
-      // console.log('leftIdentityRowResults:', leftIdentityRowResults);
     }
 
     function checkIsIdentityRow(rowIndex) {
@@ -403,6 +504,7 @@ limitations under the License.
         const elementCell = document.createElement('td');
         elementCell.innerHTML = `Identity element e = <span style="color: ${colorMap[element] || 'black'}">${element}</span>`;
         const resultCell = document.createElement('td');
+        resultCell.classList.add('result-column');
         row.appendChild(elementCell);
         row.appendChild(resultCell);
         checkTbody.appendChild(row);
@@ -416,6 +518,7 @@ limitations under the License.
         const conditionCell = document.createElement('td');
         conditionCell.innerHTML = `e * <span style="color: ${colorMap[element] || 'black'}">${element}</span> = <span style="color: ${colorMap[element] || 'black'}">${element}</span>`;
         const resultCell = document.createElement('td');
+        resultCell.classList.add('result-column');
         row.appendChild(conditionCell);
         row.appendChild(resultCell);
         conditionCheckTbody.appendChild(row);
@@ -515,11 +618,9 @@ limitations under the License.
         let index = step - 1;
         let row = Math.floor(index / size) + 1;
         let col = (index % size) + 1;
-        // console.log(`row: ${row}, col: ${col}`);
 
         // When new row, for Element Check Table show next value.
         if (col == size) {
-          // console.log('leftIdentityRowResults:', leftIdentityRowResults);
           const resultCell = elementCheckTableHtml.rows[row].cells[1];
           let element = elements[row - 1];
           resultCell.innerHTML = leftIdentityRowResults[row - 1] ? `<span style="color: ${colorMap[element] || 'black'}">${element}</span> is an identity element` : `<span style="color: ${colorMap[element] || 'black'}">${element}</span>  is not an identity element`;
@@ -547,7 +648,6 @@ limitations under the License.
         console.log(`row: ${row}, col: ${col}`);
 
         // Remove previous result from Condition Table
-        // console.log(`row: ${row}, col: ${col}`);
         // Remember the table is for a list of values in a row so use col as index for rows array.
         const resultCell = conditionCheckTableHtml.rows[col].cells[1];
         resultCell.textContent = '';
@@ -559,7 +659,6 @@ limitations under the License.
         index = step - 1;
         row = Math.floor(index / size) + 1;
         col = (index % size) + 1;
-        // console.log(`row: ${row}, col: ${col}`);
 
         // Remove previous result from Element Check Table
         if (col == (size - 1)) {
@@ -570,7 +669,6 @@ limitations under the License.
 
         // When row change, for Condition Table show all values.
         if (col == size) {
-          // console.log('leftIdentityResults:', leftIdentityResults);
           for (let col = 0; col < size; col++) {
             const resultCell = conditionCheckTableHtml.rows[col + 1].cells[1];
             resultCell.textContent = leftIdentityResults[row - 1][col] ? 'True' : 'False';
@@ -600,6 +698,11 @@ limitations under the License.
       generateIdentityRowIndicatorArray();
       generateTable();
     });
+
+    function toggleSection() {
+      const mathContent = document.getElementById('mathContent');
+      mathContent.classList.toggle('collapsed');
+    }
 
     onElementCountChange();
   </script>
