@@ -276,7 +276,7 @@ limitations under the License.
 
   <div class="set-container">
     <label for="set-select">Choose a set:</label>
-    <select id="set-select" onchange="updateSet()">
+    <select id="set-select">
       <option value="Letters" selected>Letters: a b c d e f</option>
     </select>
   </div>
@@ -291,7 +291,7 @@ limitations under the License.
     <option value="6">6</option>
   </select>
   <label for="positive-results">Positive results</label>
-  <select id="positive-results">
+    <select id="positive-results">
     <option value="1">1</option>
   </select>
   <span id="positive-results-label">(1 - required)</span>
@@ -334,15 +334,17 @@ limitations under the License.
   </div>
 
   <script>
+    const mathContent = document.getElementById('mathContent');
+    const setSelect = document.getElementById('set-select');
+    const elementCountSelect = document.getElementById('element-count');
+    const positiveResultsSelect = document.getElementById('positive-results');
+    const positiveResultsLabel = document.getElementById('positive-results-label');
     const cayleyTableHtml = document.getElementById('cayley-table');
     const elementCheckTableHtml = document.getElementById('element-check-table');
     const conditionCheckTableHtml = document.getElementById('condition-check-table');
     const stepLabel = document.getElementById('step-label');
     const forwardButton = document.getElementById('forward');
     const backwardButton = document.getElementById('backward');
-    const elementCountSelect = document.getElementById('element-count');
-    const positiveResultsSelect = document.getElementById('positive-results');
-    const positiveResultsLabel = document.getElementById('positive-results-label');
 
     const sets = {
       Letters: ['a', 'b', 'c', 'd', 'e', 'f'],
@@ -379,13 +381,12 @@ limitations under the License.
     };
 
     let size = 4;
+    let totalCells = size * size;
     let setName = 'Letters';
-    let leftIdentityResults = defaultLeftIdentityResultsArray();
     let set = sets[setName];
-    let elements = generateElements();
+    let elements = set.slice(0, size);
     let isIdentityArray = Array(size).fill(false);
     let step = 1;
-    let totalCells = size * size;
     let cayleyTableForwardSteps = [];
     let cayleyTableBackwardSteps = [];
     let elementCheckForwardSteps = [];
@@ -393,35 +394,54 @@ limitations under the License.
     let conditionCheckForwardSteps = [];
     let conditionCheckBackwardSteps = [];
     let cayleyTableData = [];
+    let leftIdentityResults = defaultLeftIdentityResultsArray();
+
+    setSelect.addEventListener('change', (event) => {
+      updateSet();
+    });
 
     function updateSet() {
-      const select = document.getElementById('set-select');
-      setName = select.value;
-      elements = sets[setName];
+      setName = setSelect.value;
+      set = sets[setName];
       generateTable();
     }
 
-    function generateElements() {
-      getSetSize();
-      const set = sets[setName];
-      let elements = set.slice(0, size);
-      return elements;
-    }
+    elementCountSelect.addEventListener('change', (event) => {
+      updateSize();
+    });
 
-    function getSetSize() {
+    function updateSize() {
       size = parseInt(elementCountSelect.value, 10);
       leftIdentityRowResults = Array(size).fill(false);
+      totalCells = size * size;
+
+      generateElementsData();
+      updatePositiveResultsSelector();
+      generateIdentityRowIndicatorArray();
+      generateTable();
+
+      if (size === 1) {
+        const resultCell = elementCheckTableHtml.rows[1].cells[1];
+        let element = elements[0];
+        resultCell.innerHTML = `<span style="color: ${colorMap[element] || 'black'}">${element}</span> is a left identity element`;
+        resultCell.classList.add('valid-cell');
+      }
     }
 
+    positiveResultsSelect.addEventListener('change', (event) => {
+      updatePositiveResults();
+    });
+
+    function updatePositiveResults() {
+      generateIdentityRowIndicatorArray();
+      generateTable();
+    };
+
     function generateElementsData() {
-      getSetSize();
-      elements = generateElements();
-      size = elements.length;
-      totalCells = size * size;
+      elements = set.slice(0, size);
     }
 
     function updatePositiveResultsSelector() {
-      getSetSize();
       positiveResultsSelect.innerHTML = '';
       if (size === 1) {
         const option = document.createElement('option');
@@ -782,29 +802,6 @@ limitations under the License.
       }
     });
 
-    function onElementCountChange() {
-      getSetSize();
-      generateElementsData();
-      updatePositiveResultsSelector();
-      generateIdentityRowIndicatorArray();
-      generateTable();
-
-      if (size === 1) {
-        const resultCell = elementCheckTableHtml.rows[1].cells[1];
-        let element = elements[0];
-        resultCell.innerHTML = `<span style="color: ${colorMap[element] || 'black'}">${element}</span> is a left identity element`;
-        resultCell.classList.add('valid-cell');
-      }
-    }
-
-    positiveResultsSelect.addEventListener('change', () => {
-      generateIdentityRowIndicatorArray();
-      generateTable();
-    });
-
-    elementCountSelect.addEventListener('change', onElementCountChange);
-
-    const setSelect = document.getElementById('set-select');
     for (const setName in sets) {
       const option = document.createElement('option');
       option.value = setName;
@@ -817,11 +814,10 @@ limitations under the License.
     }
 
     function toggleSection() {
-      const mathContent = document.getElementById('mathContent');
       mathContent.classList.toggle('collapsed');
     }
 
-    onElementCountChange();
+    updateSize();
   </script>
 
   <footer>
