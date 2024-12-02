@@ -2,6 +2,9 @@
 <html lang="en">
 
 <!--
+
+Copyright 2024 Eric G. Taucher
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -13,6 +16,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
 -->
 
 <head>
@@ -353,7 +357,7 @@ limitations under the License.
         option.value = 1;
         option.textContent = 1;
         positiveResultsSelect.appendChild(option);
-        positiveResultsLabel.textContent = '(1 - required)';
+        positiveResultsLabel.textContent = '(there can only be 1)';
       } else {
         for (let i = 0; i <= size; i++) {
           const option = document.createElement('option');
@@ -544,7 +548,6 @@ limitations under the License.
           cayleyTableHtml.rows[0].cells[col].classList.add('highlight');
         });
         cayleyTableBackwardSteps.push(() => {
-          cayleyTableHtml.rows[row].cells[col].classList.remove('valid-cell', 'invalid-cell');
           cayleyTableHtml.rows[row].cells[0].classList.remove('highlight');
           cayleyTableHtml.rows[0].cells[col].classList.remove('highlight');
         });
@@ -604,6 +607,18 @@ limitations under the License.
         elementCheckBackwardSteps[step - 1]();
         conditionCheckBackwardSteps[step - 1]();
 
+        let index = step - 1;
+        let row = Math.floor(index / size) + 1;
+        let col = (index % size) + 1;
+
+        // Clear Cayley Table entries of previous rown on new row. The entries will be added one cell at a time.
+        if (step % size == 0) {
+          for (let col = 0; col < size; col++) {
+            const resultCell = cayleyTableHtml.rows[row].cells[col + 1];
+            resultCell.classList.remove('valid-cell', 'invalid-cell');
+          }
+        }
+
         // Clear Condition Table entries on new row. The entries will be added one cell at a time.
         if (step % size == 0) {
           for (let row = 0; row < size; row++) {
@@ -615,15 +630,15 @@ limitations under the License.
 
         step++;
 
-        let index = step - 1;
-        let row = Math.floor(index / size) + 1;
-        let col = (index % size) + 1;
+        index = step - 1;
+        row = Math.floor(index / size) + 1;
+        col = (index % size) + 1;
 
         // When new row, for Element Check Table show next value.
         if (col == size) {
           const resultCell = elementCheckTableHtml.rows[row].cells[1];
           let element = elements[row - 1];
-          resultCell.innerHTML = leftIdentityRowResults[row - 1] ? `<span style="color: ${colorMap[element] || 'black'}">${element}</span> is an identity element` : `<span style="color: ${colorMap[element] || 'black'}">${element}</span>  is not an identity element`;
+          resultCell.innerHTML = leftIdentityRowResults[row - 1] ? `<span style="color: ${colorMap[element] || 'black'}">${element}</span> is a left identity element` : `<span style="color: ${colorMap[element] || 'black'}">${element}</span>  is not a left identity element`;
           resultCell.classList.add(leftIdentityRowResults[row - 1] ? 'valid-cell' : 'invalid-cell');
         }
 
@@ -645,13 +660,16 @@ limitations under the License.
         let index = step - 1;
         let row = Math.floor(index / size) + 1;
         let col = (index % size) + 1;
-        console.log(`row: ${row}, col: ${col}`);
+
+        // Remove previous result from Cayley Table
+        const cayleyTableResultCell = cayleyTableHtml.rows[row].cells[col];
+        cayleyTableResultCell.classList.remove('valid-cell', 'invalid-cell');
 
         // Remove previous result from Condition Table
         // Remember the table is for a list of values in a row so use col as index for rows array.
-        const resultCell = conditionCheckTableHtml.rows[col].cells[1];
-        resultCell.textContent = '';
-        resultCell.classList.remove('valid-cell', 'invalid-cell');
+        const conditionTableResultCell = conditionCheckTableHtml.rows[col].cells[1];
+        conditionTableResultCell.textContent = '';
+        conditionTableResultCell.classList.remove('valid-cell', 'invalid-cell');
 
         step--;
 
@@ -665,6 +683,14 @@ limitations under the License.
           const resultCell = elementCheckTableHtml.rows[row].cells[1];
           resultCell.textContent = '';
           resultCell.classList.remove('valid-cell', 'invalid-cell');
+        }
+
+        // When row change, for Cayley Table show all values.
+        if (col == size) {
+          for (let col = 0; col < size; col++) {
+            const resultCell = cayleyTableHtml.rows[row].cells[col+1];
+            resultCell.classList.add(leftIdentityResults[row-1][col] ? 'valid-cell' : 'invalid-cell');
+          }
         }
 
         // When row change, for Condition Table show all values.
@@ -692,6 +718,13 @@ limitations under the License.
       updatePositiveResultsSelector();
       generateIdentityRowIndicatorArray();
       generateTable();
+
+      if (size === 1) {
+        const resultCell = elementCheckTableHtml.rows[1].cells[1];
+        let element = elements[0];
+        resultCell.innerHTML = `<span style="color: ${colorMap[element] || 'black'}">${element}</span> is a left identity element`;
+        resultCell.classList.add('valid-cell');
+      }
     }
 
     positiveResultsSelect.addEventListener('change', () => {
