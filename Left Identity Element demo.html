@@ -2,9 +2,6 @@
 <html lang="en">
 
 <!--
-
-Copyright 2024 Eric G. Taucher
-
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -16,7 +13,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
 -->
 
 <head>
@@ -28,6 +24,36 @@ limitations under the License.
       font-family: Arial, sans-serif;
       text-align: center;
       margin: 20px;
+    }
+
+    .set-container {
+      margin-bottom: 20px;
+    }
+
+    .set-name {
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+
+    .set-elements {
+      margin-top: 10px;
+      font-size: 1.5em;
+    }
+
+    select {
+      font-size: 1em;
+      width: auto;
+      padding: 5px;
+    }
+
+    option {
+      font-size: 1em;
+      white-space: nowrap;
+    }
+
+    option span {
+      font-weight: bold;
+      margin-right: 10px;
     }
 
     .table {
@@ -42,6 +68,12 @@ limitations under the License.
       align-items: flex-start;
       margin-top: 20px;
       gap: 10px;
+    }
+
+    .operation-symbol {
+      color: #592adb;
+      font-weight: bold;
+      text-align: center;
     }
 
     #element-check-table,
@@ -242,6 +274,13 @@ limitations under the License.
     </div>
   </div>
 
+  <div class="set-container">
+    <label for="set-select">Choose a set:</label>
+    <select id="set-select" onchange="updateSet()">
+      <option value="Letters" selected>Letters: a b c d e f</option>
+    </select>
+  </div>
+
   <label for="element-count">Number of elements:</label>
   <select id="element-count">
     <option value="1">1</option>
@@ -279,7 +318,7 @@ limitations under the License.
     <table id="condition-check-table" class="table">
       <thead>
         <tr>
-          <th>Condition<br>e * x = x</th>
+          <th>Condition<br>e <span class="operation-symbol">*</span> x = x</th>
           <th class="result-column">Result</th>
         </tr>
       </thead>
@@ -305,6 +344,27 @@ limitations under the License.
     const positiveResultsSelect = document.getElementById('positive-results');
     const positiveResultsLabel = document.getElementById('positive-results-label');
 
+    const sets = {
+      Letters: ['a', 'b', 'c', 'd', 'e', 'f'],
+      Arrows: ['←', '↑', '→', '↓', '↶', '↷'],
+      Emoji: ['😃', '🤔', '🥳', '😎', '😍', '😨'],
+      Geometric: ['▲', '△', '◆', '◇', '●', '○'],
+      Weather: ['☀', '⛅', '❄', '☔', '🌞', '⚡'],
+      Chess: ['♔', '♕', '♖', '♗', '♘', '♙'],
+      Stars: ['★', '☆', '✦', '✴', '✶', '✪'],
+      Hearts: ['❤', '💛', '💙', '💜', '🧡', '❤️'],
+      Animals: ['🐶', '🐯', '🐭', '🐰', '🦊', '🐼'],
+      Plants: ['🌱', '🌿', '🌳', '🍀', '🌼', '🌺'],
+      Food: ['🍎', '🍊', '🍋', '🍉', '🍇', '🍒'],
+      Zodiac: ['♈', '♉', '♊', '♋', '♌', '♍'],
+      Circles: ['🔴', '🟠', '🟡', '🟢', '🔵', '🟣'],
+      Tools: ['🔧', '🔨', '🪛', '🪓', '🔗', '🪚'],
+      Sports: ['⚽', '🏀', '🏈', '⚾', '🏓', '🏸'],
+      Dice: ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'],
+      Transport: ['🚗', '🚌', '🚎', '🚑', '🚒', '🚚'],
+      FancyLetters: ['𝒞', '𝒟', 'ℰ', '𝒢', 'ℋ', 'ℐ']
+    };
+
     const colorMap = {
       'a': '#e6194B', // Red
       'b': '#3cb44b', // Green
@@ -319,7 +379,9 @@ limitations under the License.
     };
 
     let size = 4;
+    let setName = 'Letters';
     let leftIdentityResults = defaultLeftIdentityResultsArray();
+    let set = sets[setName];
     let elements = generateElements();
     let isIdentityArray = Array(size).fill(false);
     let step = 1;
@@ -332,9 +394,18 @@ limitations under the License.
     let conditionCheckBackwardSteps = [];
     let cayleyTableData = [];
 
+    function updateSet() {
+      const select = document.getElementById('set-select');
+      setName = select.value;
+      elements = sets[setName];
+      generateTable();
+    }
+
     function generateElements() {
       getSetSize();
-      return [...Array(size)].map((_, i) => String.fromCharCode(97 + i));
+      const set = sets[setName];
+      let elements = set.slice(0, size);
+      return elements;
     }
 
     function getSetSize() {
@@ -474,6 +545,7 @@ limitations under the License.
 
     function renderTableHeaders() {
       const thead = cayleyTableHtml.querySelector('thead tr');
+      thead.innerHTML = '<th class="operation-symbol">*</th>';
       elements.forEach(element => {
         const th = document.createElement('th');
         th.textContent = element;
@@ -520,7 +592,7 @@ limitations under the License.
       elements.forEach(element => {
         const row = document.createElement('tr');
         const conditionCell = document.createElement('td');
-        conditionCell.innerHTML = `e * <span style="color: ${colorMap[element] || 'black'}">${element}</span> = <span style="color: ${colorMap[element] || 'black'}">${element}</span>`;
+        conditionCell.innerHTML = `e <span class="operation-symbol">*</span> <span style="color: ${colorMap[element] || 'black'}">${element}</span> = <span style="color: ${colorMap[element] || 'black'}">${element}</span>`;
         const resultCell = document.createElement('td');
         resultCell.classList.add('result-column');
         row.appendChild(conditionCell);
@@ -688,8 +760,8 @@ limitations under the License.
         // When row change, for Cayley Table show all values.
         if (col == size) {
           for (let col = 0; col < size; col++) {
-            const resultCell = cayleyTableHtml.rows[row].cells[col+1];
-            resultCell.classList.add(leftIdentityResults[row-1][col] ? 'valid-cell' : 'invalid-cell');
+            const resultCell = cayleyTableHtml.rows[row].cells[col + 1];
+            resultCell.classList.add(leftIdentityResults[row - 1][col] ? 'valid-cell' : 'invalid-cell');
           }
         }
 
@@ -710,8 +782,6 @@ limitations under the License.
       }
     });
 
-    elementCountSelect.addEventListener('change', onElementCountChange);
-
     function onElementCountChange() {
       getSetSize();
       generateElementsData();
@@ -731,6 +801,20 @@ limitations under the License.
       generateIdentityRowIndicatorArray();
       generateTable();
     });
+
+    elementCountSelect.addEventListener('change', onElementCountChange);
+
+    const setSelect = document.getElementById('set-select');
+    for (const setName in sets) {
+      const option = document.createElement('option');
+      option.value = setName;
+      if (setName === 'Letters') {
+        option.textContent = `${setName}: selected ${sets[setName].join(' ')}`;
+      } else {
+        option.textContent = `${setName}: ${sets[setName].join(' ')}`;
+      }
+      setSelect.appendChild(option);
+    }
 
     function toggleSection() {
       const mathContent = document.getElementById('mathContent');
